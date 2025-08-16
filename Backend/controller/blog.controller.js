@@ -99,7 +99,9 @@ const fetchMetadata = async (url, platform) => {
       return {
         title: "Instagram Post",
         description: response.data.author_name,
-        thumbnail: response.data.thumbnail_url,
+        thumbnail: response.data.thumbnail_url
+          ? response.data.thumbnail_url
+          : "https://cdn-icons-png.flaticon.com/512/2111/2111463.png",
         siteName: "Instagram",
       };
     }
@@ -160,5 +162,96 @@ export const createBlog = async (req, res) => {
       message: "Error creating blog",
       error: error.message,
     });
-  } 
+  }
 };
+
+export const getAllBlogs = async (req, res) => {
+  try {
+
+
+    const blogs =  await Blog.find().populate("author" , "name email")
+
+    return res.status(200).json({
+        success  :  true , 
+        message : "All Blogs Fetched Successfully ! ",
+        blogs
+    })
+
+  } catch (error) {
+    console.error("Create Blog Error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error Getting All blog",
+      error: error.message,
+    });
+  }
+};
+
+
+export const getSingleBlog = async(req, res) =>{
+   try {
+
+    const blogId = req.params.id;
+
+    const blog = await Blog.findById(blogId).populate("author" , "name email")
+    if(!blog){
+        return res.status(404).json({
+            success : false ,
+            message : "Blog Not Found ! "
+        })
+    }
+
+    return res.status(200).json({
+        success : true ,
+        message : "Blog Fetched Successfully ! ",
+        blog
+    })
+    
+   } catch (error) {
+    console.error("Create Blog Error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error Getting Single blog",
+      error: error.message,
+    });
+   }
+}
+
+
+export const deleteSingleBlog = async(req, res) =>{
+   try {
+
+    const blogId = req.params.id;
+
+    const blog = await Blog.findById(blogId);
+
+    if(!blog){
+        return res.status(404).json({
+            success : false ,
+            message : "Blog Not Found "
+        })
+    }
+
+    if(String(blog.author) !== String(req.user._id)){
+        return res.status(403).json({
+            success : false ,
+            message : "Unauthorized User "
+        })
+    }
+    
+    await blog.deleteOne();
+
+    return res.status(200).json({
+        success :  true ,
+        message : "Blog Deleted Successfully ! "
+    })
+    
+   } catch (error) {
+    console.error("Create Blog Error:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error Deleting  Single blog",
+      error: error.message,
+    });
+   }
+}
