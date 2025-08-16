@@ -82,20 +82,54 @@ export const login = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-
     return res.status(201).json({
       success: true,
       message: "User Login Successfully ! ",
       user,
       token,
     });
-
-    
   } catch (error) {
     // console.log(error)
     return res.status(500).json({
       success: false,
       message: "Error Logging  the User",
+      error: error.message,
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    return res.status(201).json({
+      success: true,
+      message: "User Logout Successfully  !",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error Logouting  the User",
+      error: error.message,
+    });
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    await User.findByIdAndDelete(userId);
+
+    res.clearCookie("token");
+
+    return res.status(200).json({
+      success: true,
+      message: " User Account Deleted Successfully !",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error Deletting  the User",
       error: error.message,
     });
   }
